@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌐 萬能下載器</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1a1a1a;
+            --bg-input: #111111;
+            --bg-hover: #222222;
+            --accent: #ff4444;
+            --accent-hover: #ff6666;
+            --accent-dark: #cc2222;
+            --cyan: #00bcd4;
+            --green: #4caf50;
+            --yellow: #ff9800;
+            --purple: #9c27b0;
+            --text-primary: #e8e8e8;
+            --text-secondary: #999999;
+            --text-dim: #666666;
+            --border: #2a2a2a;
+            --border-light: #333333;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Microsoft JhengHei UI', 'Segoe UI', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 滾動條 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        /* 頂部導航 */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #1a0a0a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+            filter: drop-shadow(0 0 8px rgba(255,68,68,0.3));
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, #ff8888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            gap: 20px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--border-light);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .icon {
+            font-size: 20px;
+        }
+
+        /* 輸入文字區域 */
+        .input-section textarea {
+            width: 100%;
+            min-height: 200px;
+            max-height: 500px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            padding: 16px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+            line-height: 1.6;
+        }
+
+        .input-section textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(255,68,68,0.15);
+        }
+
+        .input-section textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .url-count {
+            margin-left: auto;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .url-count strong {
+            color: var(--cyan);
+        }
+
+        /* 按鈕 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 16px rgba(255,68,68,0.3);
+        }
+
+        .btn-secondary {
+            background: var(--border-light);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: #444;
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: white;
+        }
+        .btn-success:hover:not(:disabled) {
+            background: #5cbf60;
+            box-shadow: 0 4px 16px rgba(76,175,80,0.3);
+        }
+
+        .btn-warning {
+            background: var(--yellow);
+            color: #1a1a1a;
+        }
+
+        .btn-danger {
+            background: #d32f2f;
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #e53935;
+        }
+
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 16px;
+            border-radius: var(--radius);
+        }
+
+        /* 設定區域 - 兩欄 */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .setting-group {
+            margin-bottom: 16px;
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 輸入框 */
+        .input-text {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            padding: 10px 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-text:focus {
+            border-color: var(--accent);
+        }
+
+        .folder-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .folder-row .input-text {
+            flex: 1;
+        }
+
+        /* 單選/多選按鈕組 */
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .radio-option {
+            position: relative;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option label {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background: rgba(255,68,68,0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .radio-option label:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+        }
+
+        /* 選擇框 */
+        select.input-text {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        select.input-text option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* 開關 */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: var(--accent);
+        }
+
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* URL 列表 */
+        .url-list-section {
+            display: none;
+        }
+
+        .url-list-section.active {
+            display: block;
+        }
+
+        .url-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .url-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .url-item:last-child { border-bottom: none; }
+        .url-item:hover { background: var(--bg-hover); }
+
+        .url-item .type-badge {
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-video { background: rgba(255,68,68,0.2); color: var(--accent); }
+        .badge-webpage { background: rgba(0,188,212,0.2); color: var(--cyan); }
+        .badge-media { background: rgba(76,175,80,0.2); color: var(--green); }
+
+        .url-item .url-text {
+            flex: 1;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'Consolas', monospace;
+        }
+
+        .url-item .domain {
+            color: var(--text-dim);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .url-item .remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .url-item .remove-btn:hover { color: var(--accent); }
+
+        /* 動作列 */
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .action-bar .spacer { flex: 1; }
+
+        /* 進度區 */
+        .progress-section {
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat-item strong {
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
+        .stat-item.completed strong { color: var(--green); }
+        .stat-item.failed strong { color: var(--accent); }
+        .stat-item.pending strong { color: var(--yellow); }
+
+        .current-url {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border-radius: var(--radius-sm);
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 日誌 */
+        .log-container {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            padding: 12px;
+            line-height: 1.8;
+        }
+
+        .log-line {
+            color: var(--text-secondary);
+            word-break: break-all;
+        }
+
+        .log-line .log-time {
+            color: var(--text-dim);
+            margin-right: 8px;
+        }
+
+        .log-line.success { color: var(--green); }
+        .log-line.error { color: var(--accent); }
+        .log-line.info { color: var(--cyan); }
+        .log-line.warn { color: var(--yellow); }
+
+        /* Tooltip */
+        .has-tip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted var(--text-dim);
+        }
+        .has-tip::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #eee;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.5;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            white-space: normal;
+            width: max-content;
+            max-width: 280px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .has-tip:hover::after { opacity: 1; }
+
+        /* 工具模式 */
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .mode-card {
+            flex: 1;
+            min-width: 180px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-align: center;
+        }
+        .mode-card:hover { border-color: var(--border-light); background: var(--bg-hover); }
+        .mode-card.active { border-color: var(--accent); background: rgba(255,68,68,0.08); }
+        .mode-card .mode-icon { font-size: 28px; margin-bottom: 8px; }
+        .mode-card .mode-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .mode-card .mode-desc { font-size: 11px; color: var(--text-dim); }
+
+        /* 提取結果 */
+        .extract-results { display: none; }
+        .extract-results.active { display: block; }
+        .extract-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .extract-item-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .extract-item-header:hover { background: var(--bg-hover); }
+        .extract-item-title { flex: 1; font-size: 14px; font-weight: 600; }
+        .extract-item-wc { font-size: 12px; color: var(--cyan); }
+        .extract-item-body {
+            display: none;
+            padding: 0 16px 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .extract-item-body.open { display: block; }
+        .extract-item-body pre {
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .extract-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        /* 動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* 響應式 */
+        @media (max-width: 768px) {
+            .header-inner { flex-direction: column; gap: 8px; }
+            .container { padding: 16px; }
+            .card { padding: 16px; }
+            .action-bar { flex-direction: column; }
+            .action-bar .btn { width: 100%; justify-content: center; }
+            .action-bar .spacer { display: none; }
+        }
+
+        /* 完成提示（頁內 toast，桌面通知唔可用時嘅後備） */
+        #toast-wrap {
+            position: fixed; right: 20px; bottom: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            min-width: 280px; max-width: 360px;
+            background: #1e293b; color: #e2e8f0;
+            border: 1px solid #334155; border-left: 4px solid #22c55e;
+            border-radius: 10px; padding: 14px 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.35);
+            cursor: pointer;
+            opacity: 0; transform: translateY(12px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.error { border-left-color: #ef4444; }
+        .toast-title { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .toast-body { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+        .toast-hint { font-size: 12px; color: #64748b; margin-top: 6px; }
+    </style>
+</head>
+<body>
+<div id="toast-wrap"></div>
+
+    <!-- 頂部導航 -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-icon">🌐</span>
+                <div>
+                    <h1>萬能下載器</h1>
+                    <div class="logo-subtitle">UNIVERSAL MEDIA DOWNLOADER</div>
+                </div>
+            </div>
+            <div class="header-info">
+                <span class="status-dot"></span>
+                <span>本地運行中</span>
+                <span>|</span>
+                <span>完全離線 · 無上傳</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- 輸入區 -->
+        <div class="card input-section">
+            <div class="card-title">
+                <span class="icon">📋</span>
+                貼上連結或任意文字
+            </div>
+            <textarea id="input-text"
+                placeholder="在此貼上任何文字，系統會自動提取所有連結...&#10;&#10;支援：&#10;• YouTube / Bilibili / Twitter / Instagram 等影片平台&#10;• 任何新聞、部落格、圖片網站的連結&#10;• 可以一次貼大量文字，系統自動識別所有連結&#10;• 直接貼圖片或影片的 URL 也可以&#10;&#10;例如：&#10;https://www.youtube.com/watch?v=xxxxx&#10;https://example.com/some-article"></textarea>
+            <div class="input-actions">
+                <button class="btn btn-primary" id="analyze-btn" onclick="analyzeText()">
+                    🔍 分析連結
+                </button>
+                <button class="btn btn-secondary" onclick="clearInput()">
+                    🗑 清除
+                </button>
+                <button class="btn btn-secondary" onclick="pasteFromClipboard()">
+                    📎 從剪貼簿貼上
+                </button>
+                <div class="url-count" id="url-count"></div>
+            </div>
+        </div>
+
+        <!-- 工具模式 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🧰</span>
+                工具模式
+            </div>
+            <div class="mode-selector">
+                <div class="mode-card active" onclick="setMode('download')" id="mode-download"
+                     data-tip="用 yt-dlp 下載影片，用爬蟲抓取網頁圖片。支援 YouTube、Bilibili、Twitter 等 1000+ 平台。">
+                    <div class="mode-icon">📥</div>
+                    <div class="mode-name has-tip" data-tip="貼入連結 → 自動識別類型 → 下載影片或圖片到你指定嘅資料夾。">下載媒體</div>
+                    <div class="mode-desc">影片 · 圖片 · 音訊</div>
+                </div>
+                <div class="mode-card" onclick="setMode('extract')" id="mode-extract"
+                     data-tip="用隱形瀏覽器攞網頁 HTML，再用 AI 提取引擎揀出正文，去除廣告、導航列、footer 等雜訊，輸出乾淨嘅 Markdown 文字。">
+                    <div class="mode-icon">📄</div>
+                    <div class="mode-name has-tip" data-tip="貼入網址 → 自動抓取網頁 → 提取正文內容 → 顯示乾淨嘅文字，可以複製。">提取正文</div>
+                    <div class="mode-desc">網頁 → 乾淨文字</div>
+                </div>
+                <div class="mode-card" onclick="setMode('both')" id="mode-both"
+                     data-tip="同時做兩樣嘢：下載媒體檔案，同時提取網頁正文。適合需要完整備份嘅場景。">
+                    <div class="mode-icon">⚡</div>
+                    <div class="mode-name has-tip" data-tip="兩個功能一齊用：下載媒體 + 提取正文，一次搞掂。">全部都要</div>
+                    <div class="mode-desc">媒體 + 正文一齊嚟</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 發現的 URL 列表 -->
+        <div class="card url-list-section" id="url-list-section">
+            <div class="card-title">
+                <span class="icon">🔗</span>
+                已發現的連結
+                <span id="url-total-badge" style="margin-left:auto;font-size:13px;color:var(--cyan)"></span>
+            </div>
+            <div class="url-list" id="url-list"></div>
+        </div>
+
+        <!-- 設定 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">⚙️</span>
+                下載設定
+            </div>
+            <div class="settings-grid">
+                <!-- 左欄 -->
+                <div>
+                    <!-- 輸出資料夾 -->
+                    <div class="setting-group">
+                        <div class="setting-label">📁 輸出資料夾</div>
+                        <div class="folder-row">
+                            <input type="text" class="input-text" id="output-dir"
+                                   value="" placeholder="選擇或輸入輸出路徑...">
+                            <button class="btn btn-secondary" onclick="openFolderBrowser()">
+                                瀏覽
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 影片格式 -->
+                    <div class="setting-group">
+                        <div class="setting-label">🎬 影片平台下載格式</div>
+                        <div class="radio-group" id="format-group">
+                            <div class="radio-option">
+                                <input type="radio" name="video-format" id="fmt-best" value="best_video" checked>
+                                <label for="fmt-best">🎥 最佳畫質</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-format" id="fmt-mp3" value="mp3">
+                                <label for="fmt-mp3">🎵 MP3</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-format" id="fmt-m4a" value="m4a">
+                                <label for="fmt-m4a">🎵 M4A</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-format" id="fmt-wav" value="wav">
+                                <label for="fmt-wav">🎵 WAV</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-format" id="fmt-flac" value="flac">
+                                <label for="fmt-flac">🎵 FLAC</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 清晰度 -->
+                    <div class="setting-group" id="quality-group">
+                        <div class="setting-label">📺 影片清晰度</div>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-best" value="best" checked>
+                                <label for="q-best">最佳</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-2160" value="2160p">
+                                <label for="q-2160">4K</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-1440" value="1440p">
+                                <label for="q-1440">1440p</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-1080" value="1080p">
+                                <label for="q-1080">1080p</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-720" value="720p">
+                                <label for="q-720">720p</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-480" value="480p">
+                                <label for="q-480">480p</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="video-quality" id="q-360" value="360p">
+                                <label for="q-360">360p</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右欄 -->
+                <div>
+                    <!-- 下載類型開關 -->
+                    <div class="setting-group">
+                        <div class="setting-label">📦 下載內容類型</div>
+                        <div class="toggle-row">
+                            <span class="toggle-label">🎬 下載影片</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="dl-videos" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label">🖼 下載圖片</span>
+                            <label class="toggle">
+                                <input type="checkbox" id="dl-images" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 說明 -->
+                    <div class="setting-group">
+                        <div class="setting-label">💡 使用說明</div>
+                        <div style="font-size:12px;color:var(--text-dim);line-height:1.8;">
+                            <p>• <strong style="color:var(--accent)">影片平台</strong>（YouTube等）：使用 yt-dlp 高品質下載</p>
+                            <p>• <strong style="color:var(--cyan)">一般網頁</strong>：自動爬取相關圖片和影片</p>
+                            <p>• <strong style="color:var(--green)">直接連結</strong>：直接下載媒體文件</p>
+                            <p>• 爬蟲模式會智能篩選，只下載主要內容的媒體</p>
+                            <p>• 不會下載 logo、小圖示、廣告圖等無關內容</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 動作列 -->
+        <div class="action-bar">
+            <button class="btn btn-success btn-large" id="download-btn" onclick="startDownload()">
+                ▶ 開始下載
+            </button>
+            <button class="btn btn-danger" id="stop-btn" onclick="stopDownload()" disabled>
+                ⏹ 停止
+            </button>
+            <button class="btn btn-secondary" onclick="clearAll()">
+                🗑 清除全部
+            </button>
+            <div class="spacer"></div>
+            <button class="btn btn-secondary" id="open-folder-btn" onclick="openOutputFolder()" style="display:none">
+                📂 開啟輸出資料夾
+            </button>
+        </div>
+
+        <!-- 進度 -->
+        <div class="card progress-section" id="progress-section">
+            <div class="card-title">
+                <span class="icon">📊</span>
+                下載進度
+                <span id="progress-percent" style="margin-left:auto;font-size:14px;color:var(--accent)"></span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+            <div class="progress-stats">
+                <div class="stat-item completed">
+                    <strong id="stat-completed">0</strong> 完成
+                </div>
+                <div class="stat-item failed">
+                    <strong id="stat-failed">0</strong> 失敗
+                </div>
+                <div class="stat-item pending">
+                    <strong id="stat-pending">0</strong> 剩餘
+                </div>
+            </div>
+            <div class="current-url" id="current-url" style="display:none"></div>
+        </div>
+
+        <!-- 日誌 -->
+        <div class="card" id="log-section" style="display:none">
+            <div class="card-title">
+                <span class="icon">📋</span>
+                下載日誌
+                <button class="btn btn-secondary" onclick="clearLogs()" style="margin-left:auto;padding:4px 12px;font-size:12px;">
+                    清除日誌
+                </button>
+            </div>
+            <div class="log-container" id="log-container"></div>
+        </div>
+
+        <!-- 提取結果 -->
+        <div class="card extract-results" id="extract-section">
+            <div class="card-title">
+                <span class="icon">📄</span>
+                提取結果
+                <span id="extract-count" style="margin-left:auto;font-size:13px;color:var(--cyan)"></span>
+            </div>
+            <div id="extract-list"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════
+        // 狀態
+        // ═══════════════════════════════════════════════════
+        let detectedUrls = [];
+        let currentTaskId = null;
+        let statusPollTimer = null;
+        let logOffset = 0;
+        let currentMode = 'download';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('mode-' + mode).classList.add('active');
+
+            const dlSettings = document.querySelector('.settings-grid');
+            const dlBtn = document.getElementById('download-btn');
+
+            if (mode === 'extract') {
+                dlSettings.style.opacity = '0.3';
+                dlSettings.style.pointerEvents = 'none';
+                dlBtn.innerHTML = '📄 提取正文';
+            } else if (mode === 'both') {
+                dlSettings.style.opacity = '1';
+                dlSettings.style.pointerEvents = 'auto';
+                dlBtn.innerHTML = '⚡ 下載 + 提取';
+            } else {
+                dlSettings.style.opacity = '1';
+                dlSettings.style.pointerEvents = 'auto';
+                dlBtn.innerHTML = '▶ 開始下載';
+            }
+        }
+
+        // 預設輸出資料夾
+        const defaultDir = localStorage.getItem('output_dir') || '';
+        if (defaultDir) {
+            document.getElementById('output-dir').value = defaultDir;
+        }
+
+        // 格式切換時隱藏/顯示清晰度選項
+        document.querySelectorAll('input[name="video-format"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const val = document.querySelector('input[name="video-format"]:checked').value;
+                const qualityGroup = document.getElementById('quality-group');
+                qualityGroup.style.display = (val === 'best_video') ? 'block' : 'none';
+            });
+        });
+
+        // ═══════════════════════════════════════════════════
+        // 分析文字
+        // ═══════════════════════════════════════════════════
+        async function analyzeText() {
+            const text = document.getElementById('input-text').value.trim();
+            if (!text) {
+                alert('請先貼上文字或連結！');
+                return;
+            }
+
+            const btn = document.getElementById('analyze-btn');
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btn.textContent = '分析中';
+
+            try {
+                const resp = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await resp.json();
+
+                detectedUrls = data.urls || [];
+                renderUrlList();
+
+                document.getElementById('url-count').innerHTML =
+                    `找到 <strong>${detectedUrls.length}</strong> 條連結`;
+
+            } catch (err) {
+                alert('分析失敗：' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btn.textContent = '🔍 分析連結';
+            }
+        }
+
+        function renderUrlList() {
+            const section = document.getElementById('url-list-section');
+            const list = document.getElementById('url-list');
+            const badge = document.getElementById('url-total-badge');
+
+            if (detectedUrls.length === 0) {
+                section.classList.remove('active');
+                return;
+            }
+
+            section.classList.add('active');
+            badge.textContent = `共 ${detectedUrls.length} 條`;
+
+            list.innerHTML = detectedUrls.map((u, i) => {
+                let badgeClass = 'badge-webpage';
+                let badgeText = u.label || '一般網頁';
+                if (u.type === 'video_platform') {
+                    badgeClass = 'badge-video';
+                } else if (u.type?.startsWith('direct_')) {
+                    badgeClass = 'badge-media';
+                }
+
+                return `
+                    <div class="url-item" data-index="${i}">
+                        <span class="type-badge ${badgeClass}">${badgeText}</span>
+                        <span class="url-text" title="${escapeHtml(u.url)}">${escapeHtml(u.url)}</span>
+                        <span class="domain">${escapeHtml(u.domain || '')}</span>
+                        <button class="remove-btn" onclick="removeUrl(${i})" title="移除">✕</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removeUrl(index) {
+            detectedUrls.splice(index, 1);
+            renderUrlList();
+            document.getElementById('url-count').innerHTML =
+                `找到 <strong>${detectedUrls.length}</strong> 條連結`;
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 下載
+        // ═══════════════════════════════════════════════════
+        async function startDownload() {
+            if (detectedUrls.length === 0) {
+                await analyzeText();
+                if (detectedUrls.length === 0) {
+                    alert('沒有找到任何連結，請先貼上文字！');
+                    return;
+                }
+            }
+
+            if (currentMode === 'extract' || currentMode === 'both') {
+                await runExtract();
+                if (currentMode === 'extract') return;
+            }
+
+            const outputDir = document.getElementById('output-dir').value.trim();
+            if (!outputDir) {
+                alert('請先選擇輸出資料夾！');
+                return;
+            }
+
+            // 保存設定
+            localStorage.setItem('output_dir', outputDir);
+
+            // 預先請求桌面通知權限（需要使用者手勢，所以放喺撳下載呢一刻）
+            requestNotifyPermission();
+
+            const videoFormat = document.querySelector('input[name="video-format"]:checked').value;
+            const videoQuality = document.querySelector('input[name="video-quality"]:checked').value;
+            const downloadImages = document.getElementById('dl-images').checked;
+            const downloadVideos = document.getElementById('dl-videos').checked;
+
+            // UI 狀態
+            document.getElementById('download-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+            document.getElementById('progress-section').classList.add('active');
+            document.getElementById('log-section').style.display = 'block';
+            document.getElementById('open-folder-btn').style.display = 'none';
+
+            try {
+                const resp = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        urls: detectedUrls,
+                        output_dir: outputDir,
+                        video_format: videoFormat,
+                        video_quality: videoQuality,
+                        download_images: downloadImages,
+                        download_videos: downloadVideos,
+                    })
+                });
+
+                const data = await resp.json();
+                if (data.error) {
+                    alert('錯誤：' + data.error);
+                    resetUI();
+                    return;
+                }
+
+                currentTaskId = data.task_id;
+                logOffset = 0;
+                startStatusPolling();
+
+            } catch (err) {
+                alert('啟動下載失敗：' + err.message);
+                resetUI();
+            }
+        }
+
+        async function runExtract() {
+            const urls = detectedUrls.map(u => u.url || u);
+            const btn = document.getElementById('download-btn');
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btn.textContent = '提取中';
+
+            try {
+                const resp = await fetch('/api/extract', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({urls})
+                });
+                const data = await resp.json();
+                if (data.error) { alert('提取失敗：' + data.error); return; }
+                renderExtractResults(data.results || []);
+            } catch (e) {
+                alert('提取失敗：' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                setMode(currentMode);
+            }
+        }
+
+        function renderExtractResults(results) {
+            const section = document.getElementById('extract-section');
+            const list = document.getElementById('extract-list');
+            const countEl = document.getElementById('extract-count');
+
+            const ok = results.filter(r => !r.error);
+            countEl.textContent = `${ok.length}/${results.length} 成功`;
+            section.classList.add('active');
+
+            list.innerHTML = results.map((r, i) => {
+                if (r.error) {
+                    return `<div class="extract-item">
+                        <div class="extract-item-header">
+                            <span style="color:var(--accent)">❌</span>
+                            <div class="extract-item-title" style="color:var(--text-dim)">${escapeHtml(r.url)}</div>
+                            <span style="font-size:12px;color:var(--accent)">${escapeHtml(r.error)}</span>
+                        </div>
+                    </div>`;
+                }
+                return `<div class="extract-item">
+                    <div class="extract-item-header" onclick="toggleExtract(${i})">
+                        <span>📄</span>
+                        <div class="extract-item-title">${escapeHtml(r.title || r.url)}</div>
+                        <div class="extract-item-wc">${r.word_count?.toLocaleString() || 0} 字</div>
+                        <span style="font-size:11px;color:var(--text-dim)">▼</span>
+                    </div>
+                    <div class="extract-item-body" id="extract-body-${i}">
+                        <div class="extract-item-actions">
+                            <button class="btn btn-secondary" style="padding:6px 14px;font-size:12px"
+                                onclick="copyExtract(${i})">📋 複製</button>
+                            <span style="font-size:11px;color:var(--text-dim);line-height:32px">${escapeHtml(r.url)}</span>
+                        </div>
+                        <pre id="extract-text-${i}">${escapeHtml(r.markdown || '（空）')}</pre>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleExtract(i) {
+            const body = document.getElementById('extract-body-' + i);
+            if (body) body.classList.toggle('open');
+        }
+
+        function copyExtract(i) {
+            const pre = document.getElementById('extract-text-' + i);
+            if (pre) {
+                navigator.clipboard.writeText(pre.textContent).then(() => {
+                    const btn = pre.parentElement.querySelector('.btn');
+                    if (btn) { btn.textContent = '✅ 已複製'; setTimeout(() => btn.textContent = '📋 複製', 1500); }
+                });
+            }
+        }
+
+        async function stopDownload() {
+            if (!currentTaskId) return;
+            try {
+                await fetch(`/api/stop/${currentTaskId}`, { method: 'POST' });
+            } catch (err) {
+                console.error('Stop error:', err);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 狀態輪詢
+        // ═══════════════════════════════════════════════════
+        function startStatusPolling() {
+            if (statusPollTimer) clearInterval(statusPollTimer);
+            statusPollTimer = setInterval(pollStatus, 800);
+            pollStatus();
+        }
+
+        async function pollStatus() {
+            if (!currentTaskId) return;
+
+            try {
+                const resp = await fetch(`/api/logs/${currentTaskId}?offset=${logOffset}`);
+                const logData = await resp.json();
+
+                // 新增日誌
+                if (logData.logs && logData.logs.length > 0) {
+                    appendLogs(logData.logs);
+                    logOffset = logData.total;
+                }
+
+                // 取得整體狀態
+                const statusResp = await fetch(`/api/status/${currentTaskId}`);
+                const status = await statusResp.json();
+
+                updateProgress(status);
+
+                if (status.status === 'completed' || status.status === 'stopped') {
+                    clearInterval(statusPollTimer);
+                    statusPollTimer = null;
+                    resetUI();
+                    document.getElementById('open-folder-btn').style.display = 'inline-flex';
+                    notifyDownloadDone(status);
+                }
+
+            } catch (err) {
+                console.error('Poll error:', err);
+            }
+        }
+
+        function updateProgress(status) {
+            const total = status.total || 1;
+            const completed = status.completed || 0;
+            const failed = status.failed || 0;
+            const skipped = status.skipped || 0;
+            const done = completed + failed + skipped;
+            const percent = Math.round((done / total) * 100);
+
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('stat-completed').textContent = completed;
+            document.getElementById('stat-failed').textContent = failed;
+            document.getElementById('stat-pending').textContent = Math.max(0, total - done);
+
+            const currentUrlDiv = document.getElementById('current-url');
+            if (status.current) {
+                currentUrlDiv.style.display = 'block';
+                currentUrlDiv.textContent = `🔄 ${status.progress_detail || ''} ${status.current}`;
+            } else {
+                currentUrlDiv.style.display = 'none';
+            }
+        }
+
+        function appendLogs(logs) {
+            const container = document.getElementById('log-container');
+            const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+
+            for (const log of logs) {
+                const div = document.createElement('div');
+                div.className = 'log-line';
+
+                // 根據內容上色
+                const msg = log.msg || '';
+                if (msg.includes('✅') || msg.includes('完成')) div.className += ' success';
+                else if (msg.includes('❌') || msg.includes('失敗') || msg.includes('錯誤')) div.className += ' error';
+                else if (msg.includes('🔍') || msg.includes('📥') || msg.includes('🚀') || msg.includes('📊')) div.className += ' info';
+                else if (msg.includes('⚠') || msg.includes('🔄')) div.className += ' warn';
+
+                div.innerHTML = `<span class="log-time">[${escapeHtml(log.time || '')}]</span>${escapeHtml(msg)}`;
+                container.appendChild(div);
+            }
+
+            if (shouldScroll) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('download-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 原生資料夾選擇器
+        // ═══════════════════════════════════════════════════
+        async function openFolderBrowser() {
+            const browseBtn = document.querySelector('#output-dir + .btn');
+            if (browseBtn) {
+                browseBtn.disabled = true;
+                browseBtn.textContent = '開啟中...';
+            }
+            try {
+                const currentDir = document.getElementById('output-dir').value.trim();
+                const resp = await fetch('/api/pick_folder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initial_dir: currentDir })
+                });
+                const data = await resp.json();
+                if (data.folder) {
+                    document.getElementById('output-dir').value = data.folder;
+                    localStorage.setItem('output_dir', data.folder);
+                }
+            } catch (err) {
+                alert('開啟資料夾選擇器失敗：' + err.message);
+            } finally {
+                if (browseBtn) {
+                    browseBtn.disabled = false;
+                    browseBtn.textContent = '瀏覽';
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 工具函數
+        // ═══════════════════════════════════════════════════
+        function clearInput() {
+            document.getElementById('input-text').value = '';
+            detectedUrls = [];
+            document.getElementById('url-list-section').classList.remove('active');
+            document.getElementById('url-count').innerHTML = '';
+        }
+
+        function clearAll() {
+            clearInput();
+            clearLogs();
+            document.getElementById('progress-section').classList.remove('active');
+            document.getElementById('log-section').style.display = 'none';
+            document.getElementById('open-folder-btn').style.display = 'none';
+        }
+
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = '';
+            logOffset = 0;
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                const textarea = document.getElementById('input-text');
+                if (textarea.value) {
+                    textarea.value += '\n' + text;
+                } else {
+                    textarea.value = text;
+                }
+            } catch (err) {
+                alert('無法存取剪貼簿，請手動 Ctrl+V 貼上');
+            }
+        }
+
+        async function openOutputFolder() {
+            const dir = document.getElementById('output-dir').value.trim();
+            if (!dir) {
+                alert('尚未設定輸出資料夾');
+                return;
+            }
+            try {
+                const resp = await fetch('/api/open_folder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folder: dir })
+                });
+                const data = await resp.json();
+                if (data.error) {
+                    alert('無法開啟資料夾：' + data.error);
+                }
+            } catch (err) {
+                alert('開啟資料夾失敗：' + err.message);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 完成通知（點擊開資料夾，唔點 8 秒自動消散）
+        // ═══════════════════════════════════════════════════
+        function requestNotifyPermission() {
+            try {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            } catch (_) {}
+        }
+
+        function notifyDownloadDone(status) {
+            const completed = status.completed || 0;
+            const failed = status.failed || 0;
+            const ok = failed === 0;
+            const title = ok ? '✅ 下載完成' : '⚠ 下載結束（部分失敗）';
+            const body = `成功 ${completed}　失敗 ${failed}　·　點擊開啟資料夾`;
+
+            // 1) 優先用桌面通知
+            try {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    const n = new Notification(title, {
+                        body,
+                        tag: 'download-done',     // 同類通知自動取代，唔會堆積
+                        renotify: true,
+                    });
+                    n.onclick = () => { window.focus(); openOutputFolder(); n.close(); };
+                    setTimeout(() => n.close(), 8000);   // 唔點就自動消散
+                    return;
+                }
+            } catch (_) {}
+
+            // 2) 後備：頁內 toast（同樣點擊開資料夾、8 秒自動消散）
+            showToast(title, body, ok);
+        }
+
+        function showToast(title, body, ok = true) {
+            const wrap = document.getElementById('toast-wrap');
+            const el = document.createElement('div');
+            el.className = 'toast' + (ok ? '' : ' error');
+            el.innerHTML =
+                `<div class="toast-title">${escapeHtml(title)}</div>` +
+                `<div class="toast-body">${escapeHtml(body)}</div>` +
+                `<div class="toast-hint">點此開啟資料夾 · 8 秒後自動關閉</div>`;
+            let closed = false;
+            const close = () => {
+                if (closed) return;
+                closed = true;
+                el.classList.remove('show');
+                setTimeout(() => el.remove(), 300);
+            };
+            el.addEventListener('click', () => { openOutputFolder(); close(); });
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('show'));
+            setTimeout(close, 8000);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function escapeAttr(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        }
+
+        // 自動分析（在文字區域按 Enter + Ctrl）
+        document.getElementById('input-text').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                analyzeText();
+            }
+        });
+
+        // ═══════════════════════════════════════════════════
+        // Heartbeat & auto-shutdown
+        // 1) Heartbeat every 10s keeps server alive
+        // 2) beforeunload + sendBeacon for fast shutdown on tab close
+        //    Source: https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon
+        // 3) Server auto-shuts down after 60s without heartbeat (backup)
+        //    Source: https://stackoverflow.com/questions/71864189
+        // NOTE: visibilitychange is NOT used for shutdown because it
+        //   fires on tab-switch too (not just close).
+        //   Source: https://stackoverflow.com/questions/79416970
+        // ═══════════════════════════════════════════════════
+        fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
+        setInterval(() => {
+            fetch('/api/heartbeat', { method: 'POST' }).catch(() => {});
+        }, 10000);
+
+        window.addEventListener('beforeunload', () => {
+            navigator.sendBeacon('/api/shutdown');
+        });
+
+        // 拖放支援
+        const textarea = document.getElementById('input-text');
+        textarea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            textarea.style.borderColor = 'var(--accent)';
+        });
+        textarea.addEventListener('dragleave', () => {
+            textarea.style.borderColor = 'var(--border)';
+        });
+        textarea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            textarea.style.borderColor = 'var(--border)';
+            const text = e.dataTransfer.getData('text');
+            if (text) {
+                if (textarea.value) {
+                    textarea.value += '\n' + text;
+                } else {
+                    textarea.value = text;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

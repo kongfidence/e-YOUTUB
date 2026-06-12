@@ -1,0 +1,34 @@
+# ── Core (always needed) ──
+flask>=3.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+yt-dlp>=2024.1.0
+lxml>=5.0.0
+Pillow>=10.0.0
+pystray>=0.19.5
+
+# ── Scraper v2: Content Extraction ──
+trafilatura>=2.0.0
+extruct>=0.18.0
+pandas>=2.0.0
+
+# ── Scraper v2: Dedup ──
+datasketch>=1.6.0
+
+# ── Scraper v2: Resilience ──
+aiohttp>=3.9.0
+
+# ── Scraper v2: Stealth Fetch (L1) ──
+curl_cffi>=0.7.0
+browserforge>=1.0.0
+
+# ── Optional: Stealth Fetch L2/L3 (install as needed) ──
+# camoufox>=0.4.0         # L2: Firefox C++ fingerprint injection
+# nodriver>=0.38.0        # L3: CDP direct Chrome automation
+# capsolver-python>=1.0   # L3: CAPTCHA solving API
+
+# ── Optional: Document Extraction (install as needed) ──
+# docling>=2.0.0          # IBM AI layout analysis (PDF/DOCX/PPTX/XLSX)
+# pymupdf4llm>=0.0.10     # Fast PDF→Markdown
+# PyMuPDF>=1.24.0         # PDF processing engine
+# pdfplumber>=0.11.0      # PDF table extraction

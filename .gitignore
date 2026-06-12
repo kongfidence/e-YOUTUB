@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Runtime files (written while the app runs)
+.run_port
+launcher.log
+
+# Per-machine config (download dir / quality differ per device)
+yt_tray_config.json
+
+# Editor / IDE
+.cursor/
+.vscode/
+.idea/
+
+# Test artifacts
+test_gui_*.png
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini

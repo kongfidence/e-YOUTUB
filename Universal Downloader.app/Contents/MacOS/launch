@@ -1,0 +1,33 @@
+#!/bin/bash
+# ============================================================
+#  Universal Downloader (萬能下載器) - macOS .app launcher
+#  Runs with NO Terminal window (native app process).
+#  Opens the browser; the server auto-closes when the tab closes.
+# ============================================================
+#
+#  The .app lives inside the project folder:
+#      <project>/Universal Downloader.app/Contents/MacOS/launch
+#  so the project root is 3 levels up from this script.
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+PROJECT="$(cd "$HERE/../../.." && pwd)"
+cd "$PROJECT" || exit 1
+
+# --- Find a Python 3 interpreter ---
+if command -v python3 >/dev/null 2>&1; then
+    PY=python3
+elif command -v python >/dev/null 2>&1; then
+    PY=python
+else
+    osascript -e 'display dialog "需要先安裝 Python 3。\n\n按 OK 會打開下載頁，裝完再開一次即可。" buttons {"OK"} with icon stop with title "萬能下載器"' >/dev/null 2>&1
+    open "https://www.python.org/downloads/"
+    exit 1
+fi
+
+# --- Install dependencies quietly (no-op if already present) ---
+"$PY" -m pip install --quiet --disable-pip-version-check \
+    flask requests beautifulsoup4 yt-dlp lxml Pillow >/dev/null 2>&1
+
+# --- Run the server (foreground = app stays alive until browser tab closes) ---
+# app.py picks a free port (avoids macOS AirPlay on 5000/7000) and opens the browser.
+exec "$PY" app.py
